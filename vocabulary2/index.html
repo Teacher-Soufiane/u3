@@ -1,5 +1,32 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en"><head><script id="lu-shuf">(function(){
+function fy(a){a=Array.prototype.slice.call(a);for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+var isS=function(v){return typeof v==="string"},last=-1,counts=[0,0,0,0,0,0,0,0],seen={};
+function key(a){return a.map(String).sort().join("|~|")}
+function cands(arr){var out=[];
+try{var qs=(typeof quizConfig!=="undefined"&&quizConfig.questions)||[],k=key(arr);
+qs.forEach(function(q){var lists=[],strs=[],vals=Array.isArray(q)?q:Object.keys(q).map(function(p){return q[p]});
+vals.forEach(function(v){if(Array.isArray(v)&&v.length&&v.every(isS))lists.push(v);else if(isS(v))strs.push(v)});
+if(lists.some(function(l){return l.length===arr.length&&key(l)===k})){
+var multi=lists.some(function(l){return l.length>=2&&l.length<arr.length&&l.every(function(x){return arr.indexOf(x)>-1})});
+var c=strs.filter(function(s){return arr.indexOf(s)>-1});out.push(!multi&&c.length===1?c[0]:null)}})}catch(e){}
+return out}
+function balance(res,orig){
+if(!res||res.__bal)return res;
+try{if(!Array.isArray(orig)||res.length<3||!orig.every(isS))return res;
+var cs=cands(orig);if(!cs.length)return res;
+var k=key(orig),n=seen[k]||0;seen[k]=n+1;
+var correct=cs[n%cs.length];if(correct==null)return res;
+var idx=res.indexOf(correct);if(idx<0)return res;
+var min=1e9,i,cand=[];
+for(i=0;i<res.length;i++){if(i!==last)min=Math.min(min,counts[i])}
+for(i=0;i<res.length;i++){if(i!==last&&counts[i]===min)cand.push(i)}
+var t=cand[Math.floor(Math.random()*cand.length)],tmp=res[t];res[t]=res[idx];res[idx]=tmp;
+last=t;counts[t]++;res.__bal=true}catch(e){}
+return res}
+window.__shuf=function(arr){return balance(fy(arr),arr)};
+window.__wrapShuf=function(res,orig){return balance(res,orig)};
+})();</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Education Vocabulary Quiz 2</title>
@@ -52,7 +79,7 @@ setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:
      </div><img class="header-logo-img" loading="lazy" src="logo.png" alt="Level-UP 2BAC">
     </header>
     <div class="meta-row">
-     <span class="">UNIT: 3</span> <span class=""></span> <span class="">VOCABULARY - QUIZ 2</span>
+     <span class="">UNIT: 3</span> <span class="">EDUCATION</span> <span class="">VOCABULARY - QUIZ 2</span>
     </div>
     <div class="progress-track">
      <div id="progressFill" class="progress-fill"></div>
@@ -87,7 +114,7 @@ setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:
     </main>
     <section id="resultScreen" class="result-screen">
      <div class="result-card">
-      <p class="result-kicker"></p>
+      <p class="result-kicker">QUIZ COMPLETE</p>
       <h2 class="">Your Results</h2>
       <p class="result-lesson">VOCABULARY - QUIZ 2</p>
       <div id="scoreCircle" class="score-circle">
@@ -148,7 +175,7 @@ setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:
 
     const messages={good:["Excellent!","Great Job!","Perfect!","Keep Going!"],bad:["Almost!","Review this rule.","Keep learning!","You'll get the next one!"]};
     const $=id=>document.getElementById(id);
-    const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+    const __o_shuffle=a=>__shuf(a);const shuffle=function(){return __wrapShuf(__o_shuffle.apply(this,arguments),arguments[0])};
     const categoryNames=["Definitions","Word Forms","Word Bank","Collocations","Synonyms Challenge"];
     let questions=[],current=0,answers=[],synonymTimer=null,completed=false;
 
@@ -163,7 +190,7 @@ setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:
     };
 
     function makeQuestions(){
-      questions=quizConfig.questions.map((q,i)=>q[0]==="single-choice"?{type:q[0],category:q[1],question:q[2],task:q[3],choices:[...q[4]],correctAnswer:q[5],explanation:q[6],points:1,group:Math.floor(i/4)}:{type:q[0],category:q[1],question:q[2],targetWord:q[3],options:[...q[4]],correctSynonyms:q[5],antonym:q[6],explanation:q[7],points:1,group:4});
+      questions=quizConfig.questions.map((q,i)=>q[0]==="single-choice"?{type:q[0],category:q[1],question:q[2],task:q[3],choices:quizConfig.randomizeChoices===false?[...q[4]]:__shuf(q[4]),correctAnswer:q[5],explanation:q[6],points:1,group:Math.floor(i/4)}:{type:q[0],category:q[1],question:q[2],targetWord:q[3],options:quizConfig.randomizeChoices===false?[...q[4]]:__shuf(q[4]),correctSynonyms:q[5],antonym:q[6],explanation:q[7],points:1,group:4});
     }
     function play(type){
       if(!quizConfig.enableSounds||!window.AudioContext)return;
@@ -238,4 +265,26 @@ setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:
     makeQuestions();timer.reset();timer.start();renderQuestion();
   </script>
  
-</body></html>
+<script>(function(){
+var norm=function(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()};
+function bigs(){var out=[],all=document.querySelectorAll("[id]");for(var i=0;i<all.length;i++){var e=all[i];if(/instruction|questiontitle|questionheading/i.test(e.id)&&!e.children.length&&norm(e.textContent))out.push(e)}return out}
+function sweep(){var b=bigs();var els=document.querySelectorAll("body *");
+for(var i=0;i<els.length;i++){var e=els[i];if(e.children.length||/^(SCRIPT|STYLE|BUTTON|OPTION)$/.test(e.tagName)||b.indexOf(e)>-1)continue;
+var t=norm(e.textContent),dup=false;for(var j=0;j<b.length;j++){if(t&&t===norm(b[j].textContent))dup=true}
+if(dup){e.style.display="none";e.setAttribute("data-dup","1")}
+else if(e.getAttribute("data-dup")){e.style.display="";e.removeAttribute("data-dup")}}}
+var timer=null;function later(){sweep()}
+function start(){sweep();try{new MutationObserver(later).observe(document.body,{childList:true,characterData:true,subtree:true})}catch(e){}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
+})();</script><script>(function(){
+var norm=function(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()};
+function bigs(){var out=[],all=document.querySelectorAll("[id]");for(var i=0;i<all.length;i++){var e=all[i];if(/instruction|questiontitle|questionheading/i.test(e.id)&&!e.children.length&&norm(e.textContent))out.push(e)}return out}
+function sweep(){var b=bigs();var els=document.querySelectorAll("body *");
+for(var i=0;i<els.length;i++){var e=els[i];if(e.children.length||/^(SCRIPT|STYLE|BUTTON|OPTION)$/.test(e.tagName)||b.indexOf(e)>-1)continue;
+var t=norm(e.textContent),dup=false;for(var j=0;j<b.length;j++){if(t&&t===norm(b[j].textContent))dup=true}
+if(dup){e.style.display="none";e.setAttribute("data-dup","1")}
+else if(e.getAttribute("data-dup")){e.style.display="";e.removeAttribute("data-dup")}}}
+var timer=null;function later(){sweep()}
+function start(){sweep();try{new MutationObserver(later).observe(document.body,{childList:true,characterData:true,subtree:true})}catch(e){}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
+})();</script></body></html>
